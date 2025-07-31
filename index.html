@@ -30,7 +30,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="conversation in conversations" :key="conversation.Id" class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
+            <tr v-for="conversation in paginatedConversations" :key="conversation.Id" class="border-b border-gray-800 hover:bg-gray-800 transition-colors">
               <td class="px-6 py-4">{{ conversation.Id }}</td>
               <td class="px-6 py-4">{{ formatDate(conversation.CreatedAt) }}</td>
               <td class="px-6 py-4">{{ conversation.UserId }}</td>
@@ -47,6 +47,24 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <!-- Pagination Controls -->
+      <div class="mt-4 flex justify-center space-x-2">
+        <button 
+          @click="currentPage--" 
+          :disabled="currentPage === 1"
+          class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          Previous
+        </button>
+        <span class="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-md">
+          Page {{ currentPage }} of {{ totalPages }}
+        </span>
+        <button 
+          @click="currentPage++" 
+          :disabled="currentPage === totalPages"
+          class="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed">
+          Next
+        </button>
       </div>
     </div>
 
@@ -81,13 +99,23 @@
       data() {
         return {
           conversations: [],
-          selectedConversation: null
+          selectedConversation: null,
+          currentPage: 1,
+          itemsPerPage: 10
         }
       },
       computed: {
         parsedMessages() {
           if (!this.selectedConversation) return []
           return JSON.parse(this.selectedConversation.Messages)
+        },
+        paginatedConversations() {
+          const start = (this.currentPage - 1) * this.itemsPerPage;
+          const end = start + this.itemsPerPage;
+          return this.conversations.slice(start, end);
+        },
+        totalPages() {
+          return Math.ceil(this.conversations.length / this.itemsPerPage);
         }
       },
       methods: {
